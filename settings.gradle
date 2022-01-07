@@ -1,0 +1,3 @@
+rootProject.name = "Serial"
+include ':app'
+include ':library'
