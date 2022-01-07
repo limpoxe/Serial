@@ -66,7 +66,7 @@ static speed_t getBaudrate(jint baudrate)
     }
 }
 
-jobject open_native(JNIEnv *env, jclass thiz, jstring path, jint baudrate, jint flags)
+jobject open_native(JNIEnv *env, jclass thiz, jstring path, jint baudrate, jint stopBits, jint dataBits, jint parity, jint flowCtrl, jint flags)
 {
     int fd;
     speed_t speed;
@@ -115,6 +115,70 @@ jobject open_native(JNIEnv *env, jclass thiz, jstring path, jint baudrate, jint 
         cfsetispeed(&cfg, speed);
         cfsetospeed(&cfg, speed);
 
+        cfg.c_cflag &= ~CSIZE;
+
+        switch (dataBits) {
+            case 5:
+                cfg.c_cflag |= CS5;
+                break;
+            case 6:
+                cfg.c_cflag |= CS6;
+                break;
+            case 7:
+                cfg.c_cflag |= CS7;
+                break;
+            case 8:
+                cfg.c_cflag |= CS8;
+                break;
+            default:
+                cfg.c_cflag |= CS8;
+                break;
+        }
+
+        switch (parity) {
+            case 0:
+                cfg.c_cflag &= ~PARENB; //无
+                break;
+            case 1:
+                cfg.c_cflag |= (PARODD | PARENB); //奇校验
+                break;
+            case 2:
+                cfg.c_iflag &= ~(IGNPAR | PARMRK); //偶校验
+                cfg.c_iflag |= INPCK;
+                cfg.c_cflag |= PARENB;
+                cfg.c_cflag &= ~PARODD;
+                break;
+            default:
+                cfg.c_cflag &= ~PARENB;
+                break;
+        }
+
+        switch (stopBits) {
+            case 1:
+                cfg.c_cflag &= ~CSTOPB;
+                break;
+            case 2:
+                cfg.c_cflag |= CSTOPB;
+                break;
+            default:
+                break;
+        }
+
+        switch (flowCtrl) {
+            case 0:
+                cfg.c_cflag &= ~CRTSCTS; //无
+                break;
+            case 1:
+                cfg.c_cflag |= CRTSCTS; //硬
+                break;
+            case 2:
+                cfg.c_cflag |= IXON | IXOFF | IXANY; //软
+                break;
+            default:
+                cfg.c_cflag &= ~CRTSCTS;
+                break;
+        }
+
         if (tcsetattr(fd, TCSANOW, &cfg))
         {
             LOGE("tcsetattr() failed");
@@ -155,7 +219,7 @@ void close_native(JNIEnv *env, jclass thiz)
 static const char *gJavaClassFullName = "com/limpoxe/serial/SerialPort";
 
 static JNINativeMethod gMethods[] = {
-        {"open", "(Ljava/lang/String;II)Ljava/io/FileDescriptor;", (void *) open_native},
+        {"open", "(Ljava/lang/String;IIIIII)Ljava/io/FileDescriptor;", (void *) open_native},
         {"close", "()V", (void *) close_native},
 };
 
