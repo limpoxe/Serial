@@ -37,7 +37,7 @@ public class SerialPort {
         File device = new File(path);
         /* Check access permission */
         if (!device.canRead() || !device.canWrite()) {
-            //throw new SecurityException();
+            throw new SecurityException();
         }
 
         mFd = open(device.getAbsolutePath(), baudrate, stopBits, dataBits, parity, flowCtrl, flags);

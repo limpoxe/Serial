@@ -6,6 +6,9 @@ import android.view.View;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.limpoxe.serial.SerialPort;
+
+import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -17,6 +20,13 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.btn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                try {
+                    SerialPort serialPort = new SerialPort("/dev/ttyS0", 115200, 1, 8, 0, 0, 0x2);
+                    serialPort.getInputStream();
+                    serialPort.getOutputStream();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         });
     }
